@@ -7,7 +7,7 @@ export function Sidebar() {
   return (
     <aside className="flex flex-col w-64 h-screen bg-white ">
       <div className="p-4 ">
-        <h1 className="text-2xl font-bold">Logo</h1>
+        <h1 className="text-2xl font-bold text-red-600">Logo</h1>
       </div>
       
       <nav className="flex-1 p-4">

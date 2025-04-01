@@ -1,27 +1,27 @@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Produto } from "@/lib/types";
+import { SubCategoria } from "@/lib/types";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
-import { FaSpinner } from "react-icons/fa6";
+import { FaSpinner, FaTrash } from "react-icons/fa6";
 
-interface RemoveProductProps {
-    produto: Produto | null;
+interface RemoveSubcategoriaProps {
+    subcategoria: SubCategoria | null;
     isDeleteDialogOpen: boolean;
     setIsDeleteDialogOpen: (open: boolean) => void;
 }
 
-export default function RemoveProduct({ produto, isDeleteDialogOpen, setIsDeleteDialogOpen }: RemoveProductProps) {
+export default function RemoveSubcategoria({ subcategoria, isDeleteDialogOpen, setIsDeleteDialogOpen }: RemoveSubcategoriaProps) {
     const queryClient = useQueryClient();
 
     const mutation = useMutation({
         mutationFn: async () => {
-            const res = await fetch(`https://restaurante-api-wv3i.onrender.com/produtos/${produto?.id}`, {
+            const res = await fetch(`https://restaurante-api-wv3i.onrender.com/subcategorias/${subcategoria?.id}`, {
                 method: "DELETE",
             });
 
             if (!res.ok) {
-                throw new Error("Erro ao excluir produto");
+                throw new Error("Erro ao excluir subcategoria");
             }
 
             // Don't try to parse JSON for 204 responses
@@ -32,12 +32,12 @@ export default function RemoveProduct({ produto, isDeleteDialogOpen, setIsDelete
             return res.json();
         },
         onSuccess: () => {
-            queryClient.invalidateQueries({ queryKey: ["produtos"] });
-            toast.success("Produto excluído com sucesso!");
+            queryClient.invalidateQueries({ queryKey: ["categorias"] });
+            toast.success("Subcategoria excluída com sucesso!");
             setIsDeleteDialogOpen(false);
         },
         onError: (error) => {
-            toast.error(error.message || "Erro ao excluir produto");
+            toast.error(error.message || "Erro ao excluir subcategoria");
         },
     });
 
@@ -47,8 +47,8 @@ export default function RemoveProduct({ produto, isDeleteDialogOpen, setIsDelete
                 <DialogHeader>
                     <DialogTitle>Confirmar Exclusão</DialogTitle>
                     <DialogDescription>
-                        Tem certeza que deseja excluir o produto "{produto?.nome}"?
-                        Esta ação não pode ser desfeita.
+                        Tem certeza que deseja excluir a subcategoria "{subcategoria?.nome}"?
+                        Esta ação não pode ser desfeita e removerá todos os produtos associados.
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter className="sm:justify-between">
@@ -75,4 +75,4 @@ export default function RemoveProduct({ produto, isDeleteDialogOpen, setIsDelete
             </DialogContent>
         </Dialog>
     );
-}
+} 

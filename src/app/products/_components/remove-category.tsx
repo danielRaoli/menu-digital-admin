@@ -22,7 +22,7 @@ export default function RemoveCategory({ isDeleteDialogOpen, categoria, onClose,
                 method: "DELETE",
             });
 
-            if (!res.ok) {
+            if (!(res.status === 204)) {
                 throw new Error(`Erro ao excluir categoria: ${res.statusText}`);
             }
             return res;

@@ -1,8 +1,8 @@
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Pedido } from "@/lib/types";
+
 
 interface OrderCardProps {
     pedido: Pedido;
@@ -10,6 +10,7 @@ interface OrderCardProps {
 }
 
 export default function OrderCard({ pedido, onDetailsClick }: OrderCardProps) {
+
     return (    
         <Card key={pedido.id} className="w-min-[300px] flex-1 max-w-[400px]">
             <CardContent className="h-full flex flex-col relative">
@@ -20,12 +21,10 @@ export default function OrderCard({ pedido, onDetailsClick }: OrderCardProps) {
                         </span>
                         <span className="text-slate-400 text-sm">#Pedido {pedido.id}</span>
                     </div>
-                    <div className="flex flex-col gap-1">
-                        <Badge className="text-nowrap rounded-full w-min h-6 bg-green-600 opacity-50">
-                            {pedido.status}
-                        </Badge>
+                    
+                        
                         <span className="text-sm text-slate-400 text-end"> há 32m </span>
-                    </div>
+                  <div className="w-2 h-2 bg-green-600 rounded-full animation-pulse transition-all duration-300 absolute  -top-4 right-2"></div>
                 </div>
                 
                 <div className="flex-1 flex flex-col gap-2 mt-2"> 
@@ -62,7 +61,7 @@ export default function OrderCard({ pedido, onDetailsClick }: OrderCardProps) {
                 </div>
 
                 <Button 
-                    className="bg-slate-800 mt-auto hover:bg-slate-700" 
+                    className="bg-slate-800 mt-auto mt-2 hover:bg-slate-700" 
                     onClick={onDetailsClick}
                 >
                     Detalhes

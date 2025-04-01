@@ -18,8 +18,9 @@ import {
 import RemoveProduct from "./remove-product";
 import EditProduct from "./edit-product";
 import AddProduct from "./add-product";
-import { FaPlus } from "react-icons/fa6";
+import { FaPlus, FaTrash } from "react-icons/fa6";
 import AdicionarSubcategoria from "./adicionar-subcategoria";
+import RemoveSubcategoria from "./remove-subcategoria";
 
 interface ProductsTableProps {
    subCategorias: SubCategoria[];
@@ -46,6 +47,7 @@ export default function ProductsTable({
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
     const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+    const [isDeleteSubcategoriaDialogOpen, setIsDeleteSubcategoriaDialogOpen] = useState(false);
 
     const handleEdit = (produto: Produto) => {
         setSelectedProduct(produto);
@@ -57,16 +59,8 @@ export default function ProductsTable({
         setIsDeleteDialogOpen(true);
     };
 
-    const handleEditSubmit = () => {
-        // Implementar a lógica de edição aqui
-        setIsEditDialogOpen(false);
-        setSelectedProduct(null);
-    };
-
-    const handleDeleteConfirm = (id: number) => {
-        // Implementar a lógica de remoção aqui
-        setIsDeleteDialogOpen(false);
-        setSelectedProduct(null);
+    const handleDeleteSubcategoria = () => {
+        setIsDeleteSubcategoriaDialogOpen(true);
     };
 
     // Gera array de números de página para paginação
@@ -80,27 +74,35 @@ export default function ProductsTable({
            <div className="flex gap-2 items-center">
             <div className="flex gap-1 items-center">
               <AdicionarSubcategoria categorias={categorias} />
+              {selectedSubCategoria && (
+                <Button 
+                  variant="ghost" 
+                  size="icon"
+                  onClick={handleDeleteSubcategoria}
+                  className="rounded-full text-red-600 hover:bg-red-200 hover:text-red-600 transition-colors"
+                >
+                  <FaTrash className="h-4 w-4" />
+                </Button>
+              )}
               <Select onValueChange={(value) => onSubCategoryChange(Number(value))} value={selectedSubCategoria?.id.toString()}>
-              <SelectTrigger className="w-[180px] cursor-pointer">
-                <SelectValue placeholder="Sub Categoria" />
-              </SelectTrigger>
-              <SelectContent>
-                 <SelectGroup>
-                  <SelectLabel>{subCategorias.length > 0 ? "Sub Categorias" : "Selecione uma categoria"}</SelectLabel>
-                  {subCategorias.map((subcategoria) => (
-                    <SelectItem key={subcategoria.id} value={subcategoria.id.toString()}>
-                      {subcategoria.nome}
-                    </SelectItem>
-                  ))}
-                </SelectGroup> 
-              </SelectContent>
-            </Select>
-
+                <SelectTrigger className="w-[180px] cursor-pointer">
+                  <SelectValue placeholder="Sub Categoria" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectGroup>
+                    <SelectLabel>{subCategorias.length > 0 ? "Sub Categorias" : "Selecione uma categoria"}</SelectLabel>
+                    {subCategorias.map((subcategoria) => (
+                      <SelectItem key={subcategoria.id} value={subcategoria.id.toString()}>
+                        {subcategoria.nome}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup> 
+                </SelectContent>
+              </Select>
             </div>
-           
 
             <AddProduct 
-            categorias={categorias}
+              categorias={categorias}
               isOpen={isAddDialogOpen}
               open={() => setIsAddDialogOpen(true)}
               onClose={() => setIsAddDialogOpen(false)}
@@ -168,13 +170,16 @@ export default function ProductsTable({
           produto={selectedProduct}
           isEditDialogOpen={isEditDialogOpen}
           setIsEditDialogOpen={setIsEditDialogOpen}
-          handleEditSubmit={handleEditSubmit}
         />
         <RemoveProduct 
           produto={selectedProduct} 
           isDeleteDialogOpen={isDeleteDialogOpen} 
           setIsDeleteDialogOpen={setIsDeleteDialogOpen} 
-          onDelete={handleDeleteConfirm} 
+        />
+        <RemoveSubcategoria
+          subcategoria={selectedSubCategoria}
+          isDeleteDialogOpen={isDeleteSubcategoriaDialogOpen}
+          setIsDeleteDialogOpen={setIsDeleteSubcategoriaDialogOpen}
         />
     </>;
 }

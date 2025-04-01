@@ -3,7 +3,7 @@
 import CategorySelect from "./_components/category-select";
 import ProductsTable from "./_components/products-table";
 import { Categoria, Produto, SubCategoria } from "@/lib/types";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import AddCategory from "./_components/add-category";
 import RemoveCategory from "./_components/remove-category";
@@ -35,10 +35,21 @@ export default function Products() {
   const [currentPage, setCurrentPage] = useState(1);
   const [paginatedProdutos, setPaginatedProdutos] = useState<Produto[]>([]);
   const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false);
+  const queryClient = useQueryClient();
 
   const { data: categoriasData, isLoading: loadingCategorias } = useQuery({
     queryKey: ["categorias"],
-    queryFn: fetchCategorias,
+    queryFn: async () => {
+      const categorias = await fetchCategorias();
+      // Atualiza as subcategorias baseado na categoria selecionada
+      if (selectedCategoria) {
+        const categoriaAtual = categorias.find(c => c.id === selectedCategoria.id);
+        setSubCategorias(categoriaAtual?.subcategorias || []);
+      } else {
+        setSubCategorias(categorias.flatMap(c => c.subcategorias));
+      }
+      return categorias;
+    },
   });
 
   const { data: produtosData, isLoading: loadingProdutos } = useQuery({
@@ -62,6 +73,16 @@ export default function Products() {
     setSelectedSubCategoria(subcategoria ?? null);
     setCurrentPage(1); // Reset para primeira página ao mudar subcategoria
   }
+
+  // Efeito para atualizar as subcategorias quando a categoria selecionada muda
+  useEffect(() => {
+    if (selectedCategoria && categoriasData) {
+      const categoriaAtual = categoriasData.find(c => c.id === selectedCategoria.id);
+      setSubCategorias(categoriaAtual?.subcategorias || []);
+    } else if (categoriasData) {
+      setSubCategorias(categoriasData.flatMap(c => c.subcategorias));
+    }
+  }, [selectedCategoria, categoriasData]);
 
   useEffect(() => {
     const paginatedProdutos = produtosData 

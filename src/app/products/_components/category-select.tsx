@@ -12,6 +12,13 @@ export default function CategorySelect({ categorias, onCategoryChange }: Categor
           type="single" 
           className=" flex-wrap gap-2"
         >
+          <ToggleGroupItem 
+              className="data-[state=on]:bg-slate-700  flex-auto max-w-min data-[state=on]:text-white  py-2 rounded-2xl  bg-gray-200 hover:bg-gray-200 transition-colors "
+              value="all"
+              onClick={() => onCategoryChange(0)}
+            >
+              Todos
+            </ToggleGroupItem>
           {categorias.map((categoria) => (
             <ToggleGroupItem 
               className="data-[state=on]:bg-slate-700  flex-auto max-w-min data-[state=on]:text-white  py-2 rounded-2xl  bg-gray-200 hover:bg-gray-200 transition-colors "

@@ -25,7 +25,7 @@ export default function Tables() {
                 const data = await res.json();
                 return (data as Mesa).pedidos.filter((pedido) => pedido.status === "pendente");
             } else {
-                return fetchPedidos();
+                return fetchPedidos().then((pedidos) => pedidos.filter((pedido : Pedido) => pedido.status === "pendente"));
             }
         }
     });
@@ -60,7 +60,7 @@ export default function Tables() {
                 onSelect={setSelectedTable}
                 selectedTable={selectedTable}
             />
-            <Orders pedidos={pedidoData} />
+            <Orders selectedTable={selectedTable} pedidos={pedidoData} />
         </div>
     )
 }
