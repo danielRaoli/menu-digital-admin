@@ -4,6 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Categoria } from "@/lib/types";
 import { FaSpinner, FaTrash } from "react-icons/fa6";
+import { toast } from "sonner";
 
 interface RemoveCategoryProps {
     isDeleteDialogOpen: boolean;
@@ -20,11 +21,19 @@ export default function RemoveCategory({ isDeleteDialogOpen, categoria, onClose,
             const res = await fetch(`https://restaurante-api-wv3i.onrender.com/categorias/${categoria?.id}`, {
                 method: "DELETE",
             });
-            return res.json();
+
+            if (!res.ok) {
+                throw new Error(`Erro ao excluir categoria: ${res.statusText}`);
+            }
+            return res;
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["categorias"] });
+            toast.success("Categoria excluída com sucesso!");
             onClose();
+        },
+        onError: (error) => {
+            toast.error(error.message || "Erro ao excluir categoria");
         },
     });
 
@@ -53,6 +62,7 @@ export default function RemoveCategory({ isDeleteDialogOpen, categoria, onClose,
                             type="button"
                             variant="secondary"
                             onClick={onClose}
+                            disabled={mutation.isPending}
                         >
                             Cancelar
                         </Button>

@@ -1,96 +1,66 @@
-
+"use client"
 import TablesSelect from "./_components/tables-select"
 import Orders from "./_components/orders"
-import { Pedido } from "@/lib/types"
+import { Mesa, Pedido } from "@/lib/types"
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
+import { io } from "socket.io-client";
+
+async function fetchPedidos() {
+    const res = await fetch('https://restaurante-api-wv3i.onrender.com/pedidos');
+    if (!res.ok) {
+        throw new Error('Erro ao buscar pedidos');
+    }
+    return res.json();
+}
 
 export default function Tables() {
+    const [selectedTable, setSelectedTable] =useState<string>("all")
 
-    const pedidos = [
-        {
-            id: 1,
-            mesaId: 5,
-            status: "Em preparação",
-            produtos: [
-                {
-                    id: 1,
-                    pedidoId: 1,
-                    produtoId: 1,
-                    quantidade: 2,
-                    produto: {
-                        id: 1,
-                        nome: "Hambúrguer Artesanal",
-                        preco: 25.99,
-                        imagem: "hamburguer.jpg",
-                        descricao: "Hambúrguer feito com carne Angus, queijo cheddar e bacon.",
-                        categoriaId: 1,
-                        subcategoriaId: null,
-                    },
-                },
-                {
-                    id: 2,
-                    pedidoId: 1,
-                    produtoId: 2,
-                    quantidade: 1,
-                    produto: {
-                        id: 2,
-                        nome: "Batata Frita",
-                        preco: 12.5,
-                        imagem: "batata-frita.jpg",
-                        descricao: "Batata frita crocante acompanhada de molho especial.",
-                        categoriaId: 2,
-                        subcategoriaId: null,
-                    },
-                },
-                {
-                    id: 3,
-                    pedidoId: 1,
-                    produtoId: 3,
-                    quantidade: 1,
-                    produto: {
-                        id: 3,
-                        nome: "Batata Frita",
-                        preco: 12.5,
-                        imagem: "batata-frita.jpg",
-                        descricao: "Batata frita crocante acompanhada de molho especial.",
-                        categoriaId: 2,
-                        subcategoriaId: null,
-                    },
-                },
-            ],
-            mesa: {
-                id: 5,
-            },
-        },
-        {
-            id: 2,
-            mesaId: 3,
-            status: "Finalizado",
-            produtos: [
-                {
-                    id: 3,
-                    pedidoId: 2,
-                    produtoId: 3,
-                    quantidade: 1,
-                    produto: {
-                        id: 3,
-                        nome: "Pizza de Calabresa",
-                        preco: 42.99,
-                        imagem: "pizza-calabresa.jpg",
-                        descricao: "Pizza com calabresa, cebola e queijo mussarela.",
-                        categoriaId: 3,
-                        subcategoriaId: null,
-                    },
-                },
-            ],
-            mesa: {
-                id: 3,
-            },
-        },
-    ] as unknown as Pedido[];
+    const { data: pedidoData = [], isLoading: loadingPedidos } = useQuery<Pedido[]>({
+        queryKey: selectedTable ? ['pedidos', 'mesa', selectedTable] : ['pedidos', 'all'],
+        queryFn: async () => {
+            if (selectedTable !== "all") {
+                const res = await fetch(`https://restaurante-api-wv3i.onrender.com/mesas/${selectedTable}`);
+                const data = await res.json();
+                return (data as Mesa).pedidos.filter((pedido) => pedido.status === "pendente");
+            } else {
+                return fetchPedidos();
+            }
+        }
+    });
+
+    const queryClient = useQueryClient();
+
+    useEffect(() => {
+        const socket = io("https://restaurante-api-wv3i.onrender.com");
+
+        socket.on("pedidoCriado", (novoPedido: Pedido) => {
+            console.log("Novo pedido recebido via WebSocket:", novoPedido);
+            
+            queryClient.setQueryData<Pedido[]>(['pedidos', 'all'], (oldPedidos = []) => {
+                return [...oldPedidos, novoPedido];
+            });
+
+            if (selectedTable !== "all" && novoPedido.mesaId === Number(selectedTable)) {
+                queryClient.setQueryData<Pedido[]>(['pedidos', 'mesa', selectedTable], (oldPedidos = []) => {
+                    return [...oldPedidos, novoPedido];
+                });
+            }
+        });
+
+        return () => {
+            socket.disconnect();
+        };
+    }, [selectedTable, queryClient]);
+
     return (
         <div className="w-full flex flex-col h-full">
-            <TablesSelect />
-            <Orders pedidos={pedidos} />
+            <TablesSelect 
+                onSelect={setSelectedTable}
+                selectedTable={selectedTable}
+            />
+            <Orders pedidos={pedidoData} />
         </div>
     )
 }

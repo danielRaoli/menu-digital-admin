@@ -15,42 +15,52 @@ async function fetchCategorias(): Promise<Categoria[]> {
   return res.json();
 }
 
-async function fetchProdutos(): Promise<Produto[]> {
-  const res = await fetch("https://restaurante-api-wv3i.onrender.com/produtos");
-  return res.json();
+async function fetchProdutos(categoriaId?: number, subcategoriaId?: number): Promise<Produto[]> {
+  let url = "https://restaurante-api-wv3i.onrender.com/produtos";
+  if (subcategoriaId) {
+    url = `https://restaurante-api-wv3i.onrender.com/subcategorias/${subcategoriaId}`;
+  } else if (categoriaId) {
+    url = `https://restaurante-api-wv3i.onrender.com/categorias/${categoriaId}`;
+  }
+  const res = await fetch(url);
+  const data = await res.json();
+  // If the response contains a produtos array, return it, otherwise return the data itself
+  return data.produtos || data;
 }
 
 export default function Products() {
+  const [selectedCategoria, setSelectedCategoria] = useState<Categoria | null>(null);
+  const [selectedSubCategoria, setSelectedSubCategoria] = useState<SubCategoria | null>(null);
+  const [subCategorias, setSubCategorias] = useState<SubCategoria[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [paginatedProdutos, setPaginatedProdutos] = useState<Produto[]>([]);
+  const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false);
+
   const { data: categoriasData, isLoading: loadingCategorias } = useQuery({
     queryKey: ["categorias"],
     queryFn: fetchCategorias,
   });
 
   const { data: produtosData, isLoading: loadingProdutos } = useQuery({
-    queryKey: ["produtos"],
-    queryFn: fetchProdutos,
+    queryKey: ["produtos", selectedCategoria?.id, selectedSubCategoria?.id],
+    queryFn: () => fetchProdutos(selectedCategoria?.id, selectedSubCategoria?.id),
+    enabled: true,
   });
-
-  const [selectedCategoria, setSelectedCategoria] = useState<Categoria | null>(null);
-  const [subCategorias, setSubCategorias] = useState<SubCategoria[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [paginatedProdutos, setPaginatedProdutos] = useState<Produto[]>([]);
-  const [isRemoveDialogOpen, setIsRemoveDialogOpen] = useState(false);
 
   function handleCategoryChange(categoriaId: number) {
     if (categoriaId === selectedCategoria?.id) return;
     const categoria = categoriasData?.find(c => c.id === categoriaId);
     setSelectedCategoria(categoria ?? null);
+    setSelectedSubCategoria(null); // Reset subcategoria when category changes
     setSubCategorias(categoria ? categoria.subcategorias : []);
     setCurrentPage(1); // Reset para primeira página ao mudar categoria
-    const produtosFiltrados = produtosData?.filter(p => p.categoriaId === categoriaId) ?? [];
-    const paginatedProdutos = produtosFiltrados 
-      ? produtosFiltrados.slice(
-          (currentPage - 1) * ITEMS_PER_PAGE,
-          currentPage * ITEMS_PER_PAGE
-        )
-      : [];
-    setPaginatedProdutos(paginatedProdutos);
+  }
+
+  function handleSubCategoryChange(subcategoriaId: number) {
+    if (subcategoriaId === selectedSubCategoria?.id) return;
+    const subcategoria = subCategorias.find(s => s.id === subcategoriaId);
+    setSelectedSubCategoria(subcategoria ?? null);
+    setCurrentPage(1); // Reset para primeira página ao mudar subcategoria
   }
 
   useEffect(() => {
@@ -92,6 +102,8 @@ export default function Products() {
         totalPages={totalPages}
         onPageChange={setCurrentPage}
         categorias={categoriasData ?? []}
+        onSubCategoryChange={handleSubCategoryChange}
+        selectedSubCategoria={selectedSubCategoria}
       />
     </section>
   );

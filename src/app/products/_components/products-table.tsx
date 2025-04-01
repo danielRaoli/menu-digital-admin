@@ -18,6 +18,8 @@ import {
 import RemoveProduct from "./remove-product";
 import EditProduct from "./edit-product";
 import AddProduct from "./add-product";
+import { FaPlus } from "react-icons/fa6";
+import AdicionarSubcategoria from "./adicionar-subcategoria";
 
 interface ProductsTableProps {
    subCategorias: SubCategoria[];
@@ -26,6 +28,8 @@ interface ProductsTableProps {
    totalPages: number;
    onPageChange: (page: number) => void;
    categorias: Categoria[];
+   onSubCategoryChange: (subcategoriaId: number) => void;
+   selectedSubCategoria: SubCategoria | null;
 }
 
 export default function ProductsTable({ 
@@ -34,7 +38,9 @@ export default function ProductsTable({
   produtos, 
   currentPage, 
   totalPages,
-  onPageChange 
+  onPageChange,
+  onSubCategoryChange,
+  selectedSubCategoria
 }: ProductsTableProps) {
     const [selectedProduct, setSelectedProduct] = useState<Produto | null>(null);
     const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -72,7 +78,9 @@ export default function ProductsTable({
            <span>Items do Cardápio</span>
 
            <div className="flex gap-2 items-center">
-           <Select>
+            <div className="flex gap-1 items-center">
+              <AdicionarSubcategoria categorias={categorias} />
+              <Select onValueChange={(value) => onSubCategoryChange(Number(value))} value={selectedSubCategoria?.id.toString()}>
               <SelectTrigger className="w-[180px] cursor-pointer">
                 <SelectValue placeholder="Sub Categoria" />
               </SelectTrigger>
@@ -87,6 +95,9 @@ export default function ProductsTable({
                 </SelectGroup> 
               </SelectContent>
             </Select>
+
+            </div>
+           
 
             <AddProduct 
             categorias={categorias}
