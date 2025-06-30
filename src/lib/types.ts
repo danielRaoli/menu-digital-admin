@@ -48,3 +48,12 @@ export type Categoria = {
     numero: number;
     pedidos: Pedido[];
   };
+
+  export type Conta = {
+    id : number
+    donoConta:   String
+    statusConta: String
+    pedidos:     Pedido[]
+  }
+
+  
