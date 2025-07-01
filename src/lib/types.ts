@@ -51,8 +51,8 @@ export type Categoria = {
 
   export type Conta = {
     id : number
-    donoConta:   String
-    statusConta: String
+    donoConta:   string
+    statusConta: string
     pedidos:     Pedido[]
   }
 

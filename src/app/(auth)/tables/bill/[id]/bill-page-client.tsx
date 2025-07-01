@@ -1,24 +1,14 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { Conta, Pedido } from "@/lib/types";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
-import { FaArrowLeft } from "react-icons/fa6";
 import { Badge } from "@/components/ui/badge";
 import api from "@/lib/axios";
 import { useState, useEffect } from "react";
 import { Ticket, User } from "lucide-react";
 import { useSocket } from "@/contexts/socket-context";
 
-async function fetchConta(contaId: string): Promise<Pedido[]> {
-    const res = await api.get(`/contas/${contaId}`);
-    if (res.data ) {
-        throw new Error('Erro ao buscar pedidos');
-    }
-    
-    return res.data;
-}
+
 
 interface BillPageClientProps {
     contaId: string;
@@ -31,19 +21,25 @@ export default function BillPageClient({ contaId }: BillPageClientProps) {
     const [error, setError] = useState<string | null>(null);
     const socket = useSocket();
 
-    useEffect(() => {
-        async function fetchConta() {
-            setIsLoading(true);
-            setError(null);
-            try {
-                const res = await api.get(`/contas/${contaId}`);
-                setConta(res.data);
-            } catch (err: any) {
+    async function fetchConta() {
+        setIsLoading(true);
+        setError(null);
+        try {
+            const res = await api.get(`/contas/${contaId}`);
+            setConta(res.data);
+        } catch (err: unknown) {
+            if (err instanceof Error) {
+                setError('Erro ao buscar conta: ' + err.message);
+            } else {
                 setError('Erro ao buscar conta');
-            } finally {
-                setIsLoading(false);
             }
+        } finally {
+            setIsLoading(false);
         }
+    }
+
+    useEffect(() => {
+
         fetchConta();
     }, [contaId]);
 
