@@ -9,10 +9,14 @@ import { Button } from '@/components/ui/button';
 import { isTokenExpired } from '@/utils/jwt';
 import { Label } from '@/components/ui/label';
 import { toast } from 'sonner';
+import { Loader2, CheckCircle, XCircle } from 'lucide-react';
 
 export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [loginStatus, setLoginStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  const [message, setMessage] = useState('');
   const router = useRouter();
 
   useEffect(() => {
@@ -24,22 +28,44 @@ export default function LoginPage() {
   }, [router]);
 
   const login = async () => {
+    if (!username || !password) {
+      setLoginStatus('error');
+      setMessage('Por favor, preencha todos os campos');
+      return;
+    }
+
+    setIsLoading(true);
+    setLoginStatus('idle');
+    setMessage('');
+
     try {
-      const res = api.post('/login', {
+      const res = await api.post('/login', {
         username,
         password
-      })
-      const data = (await res).data;
+      });
+      const data = res.data;
 
-      if ((await res).status === 200) {
+      if (res.status === 200) {
+        setLoginStatus('success');
+        setMessage('Login realizado com sucesso!');
         localStorage.setItem('token', data.token);
-        router.push('/products');
+        
+        // Aguarda um pouco para mostrar a mensagem de sucesso
+        setTimeout(() => {
+          router.push('/products');
+        }, 1500);
       } else {
+        setLoginStatus('error');
+        setMessage('Credenciais inválidas');
         toast.error("Credenciais inválidas");
       }
     } catch (err) {
       console.error(err);
+      setLoginStatus('error');
+      setMessage('Erro ao conectar com o servidor');
       toast.error("Erro ao conectar");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -62,7 +88,37 @@ export default function LoginPage() {
             <Label>Senha</Label>
             <Input type="password" placeholder='Senha de acesso' value={password} onChange={e => setPassword(e.target.value)} />
           </div>
-          <Button className='bg-orange-600 text-white hover:bg-orange-700'  onClick={login}>Entrar</Button>
+          
+          {/* Componente de feedback */}
+          {loginStatus !== 'idle' && (
+            <div className={`flex items-center gap-2 p-3 rounded-md ${
+              loginStatus === 'success' 
+                ? 'bg-green-50 text-green-700 border border-green-200' 
+                : 'bg-red-50 text-red-700 border border-red-200'
+            }`}>
+              {loginStatus === 'success' ? (
+                <CheckCircle className="w-4 h-4" />
+              ) : (
+                <XCircle className="w-4 h-4" />
+              )}
+              <span className="text-sm font-medium">{message}</span>
+            </div>
+          )}
+          
+          <Button 
+            className='bg-orange-600 text-white hover:bg-orange-700 disabled:opacity-50' 
+            onClick={login}
+            disabled={isLoading}
+          >
+            {isLoading ? (
+              <>
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                Entrando...
+              </>
+            ) : (
+              'Entrar'
+            )}
+          </Button>
         </div>
       </div>
     </div>

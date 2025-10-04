@@ -4,9 +4,9 @@ import { FaChartColumn } from 'react-icons/fa6'
 import { MdOutlineChatBubble, MdOutlineTableRestaurant } from 'react-icons/md'
 const links = [
   {
-    href: "/analytics",
+    href: "/dashboard",
     icon: <FaChartColumn className='text-2xl' />,
-    label: "Analytics"
+    label: "Dashboard"
   },
   {
     href: "/products",
